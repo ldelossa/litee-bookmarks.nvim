@@ -1,0 +1,205 @@
+*litee-bookmarks.nvim* litee-bookmarks.nvim
+
+Author:   Louis DeLosSantos <louis.delos@gmail.com>
+Homepage: <https://github.com/ldelossa/litee-bookmarks.nvim>
+License:  MIT license
+
+██╗     ██╗████████╗███████╗███████╗   ███╗   ██╗██╗   ██╗██╗███╗   ███╗
+██║     ██║╚══██╔══╝██╔════╝██╔════╝   ████╗  ██║██║   ██║██║████╗ ████║ Lightweight
+██║     ██║   ██║   █████╗  █████╗     ██╔██╗ ██║██║   ██║██║██╔████╔██║ Integrated
+██║     ██║   ██║   ██╔══╝  ██╔══╝     ██║╚██╗██║╚██╗ ██╔╝██║██║╚██╔╝██║ Text
+███████╗██║   ██║   ███████╗███████╗██╗██║ ╚████║ ╚████╔╝ ██║██║ ╚═╝ ██║ Editing
+╚══════╝╚═╝   ╚═╝   ╚══════╝╚══════╝╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝╚═╝     ╚═╝ Environment
+====================================================================================
+CONTENTS                                                         *litee-contents*
+
+  1     Intro.........................................|litee-bookmarks-intro|
+  2     Usage.........................................|litee-bookmarks-usage|
+  2.1    Unified Panel................................|litee-bookmarks-unified-panel|  
+  3     Commands......................................|litee-bookmarks-commands|
+  4     Mappings......................................|litee-bookmarks-mappings|
+  5     Config........................................|litee-bookmarks-config|
+  6     Highlights....................................|litee-bookmarks-highlights|
+
+====================================================================================
+INTRODUCTION                                                  *litee-bookmarks-intro*
+
+litee-bookmarks utilizes the [litee.nvim](https://github.com/ldelossa/litee.nvim) library to 
+implement plugin for creating and saving bookmarks for a project.
+
+====================================================================================
+Usage                                                         *litee-bookmarks-usage*
+
+In `litee-bookmarks` `Bookmarks` are organized into `Notebooks`. 
+
+`Notebooks' can be created with the "LTCreateNotebook" command. 
+
+Without any arguments this creates a `Notebook` associated with Neovim's 
+current working directory, which is typically your project's root if you're
+using an LSP.
+
+You can then open the notebook with the "LTOpenNotebook" command. 
+
+Without any arguments this opens the notebook associated with your project's 
+root.
+
+Once a `Notebook` has been opened you can begin creating `Bookmarks` with the 
+`LTCreateBookmark` command. 
+
+You can remove a `Bookmark` by placing your cursor over it and issuing the 
+`LTDeleteBookmark` command.
+
+`litee-bookmarks` also supports "arbitrary" `Notebooks`, ones which are associated
+with no projects at all.
+
+To create an "arbitrary" `Notebook` pass a notebook name to "LTCreateNotebook". 
+
+You can then use the `LTListNotebooks` to get a `vim.ui.select` promp which lists 
+all created `Notebooks` and will open one on selection.
+
+Like all `litee.nvim` backed plugins the UI will work with other `litee.nvim` plugins, 
+keeping its appropriate place in a collapsible panel.
+
+                                                            *litee-bookmarks-panel*
+
+`litee-bookmarks` utilizes the `litee.nvim` libray to integrate itself within
+the panel `litee.nvim` exposes.
+
+This means the bookmarks UI will share its portion of the panel with other
+`litee.nvim` backed plugin creating a unified panel experience similar to
+IDEs such as JetBrains and VSCode.
+
+The panel is defined and implemented in the `litee.nvim` module and configured
+on its own, this doc will cover some panel basics in the `litee-bookmarks-commands`
+and `litee-bookmarks-config` sections.
+
+From there check out `litee-commands` to manipulate the UI.
+
+====================================================================================
+COMMANDS                                                   *litee-bookmarks-commands*
+
+The `litee.nvim` library proper exports the panel which all `litee.nvim` backed
+plugins which display themselves should utilize.
+
+To toggle the panel open and close use the following command 
+(exported on `require('litee.lib').setup()`)
+
+    -- Toggle the litee.nvim panel open or close.
+    -- When toggled the relative window sizes are reset but the major 
+    -- size (width for left/right, height for top/bottom) are remembered.
+    vim.cmd("command! LTPanel       lua require('litee.ui').toggle_panel()")
+
+    -- Create a notebook.
+    -- If no argument is given a notebook is created associated with Neovim's `cwd`
+    -- When an argument is provided an arbitrary named notebook is created not associated
+    -- with any project.
+    vim.cmd("command! LTCreateNotebook       lua require('litee.bookmarks').create_notebook(<args>)")
+    -- Opens a created notebook.
+    -- If no argument is given a search for a notebook associated with `cwd` will be done.
+    -- If an argument is given a search for the provided arbitrary notebook is done.
+    vim.cmd("command! LTOpenNotebook         lua require('litee.bookmarks.handlers').bookmarks_handler(<args>)")
+    -- Lists created notebooks in a vim.ui.select prompt.
+    vim.cmd("command! LTListNotebooks        lua require('litee.bookmarks').open_notebook_by_select()")
+    -- Creates a bookmark in the currently opened notebook.
+    vim.cmd("command! LTCreateBookmark       lua require('litee.bookmarks').create_bookmark()")
+    -- Deletes a bookmark in the currently opened notebook.
+    vim.cmd("command! LTDeleteBookmark       lua require('litee.bookmarks').delete_bookmark()")
+    -- Opens the `litee.nvim` panel directly to the notebook window.
+    vim.cmd("command! LTOpenToNotebook       lua require('litee.bookmarks').open_to()")
+    -- Opens the notebook window in a `litee.nvim` popout panel.
+    vim.cmd("command! LTPopOutNotebook       lua require('litee.bookmarks').popout_to()")
+    -- Closes the notebook and removes its state from Neovim.
+    -- Will not show up after a panel toggle.
+    vim.cmd("command! LTCloseNotebook        lua require('litee.bookmarks').close_notebook()")
+    -- Hides the notebook from the `litee.nvim` panel but leaves state in Neovim.
+    -- Will appear againt after a panel toggle.
+    vim.cmd("command! LTHideBookmarks        lua require('litee.bookmarks').hide_bookmarks()")
+    -- Move to next bookmark in the notebook window
+    vim.cmd("command! LTNextBookmarks        lua require('litee.bookmarks').navigation('n')")
+    -- Move to previous bookmark in the notebook window
+    vim.cmd("command! LTPrevBookmarks        lua require('litee.bookmarks').navigation('p')")
+    -- Jump to bookmark under the cursor
+    vim.cmd("command! LTJumpBookmarks        lua require('litee.bookmarks').jump_bookmarks()")
+    -- Jump to bookmark under the cursor in a split.
+    vim.cmd("command! LTJumpBookmarksSplit   lua require('litee.bookmarks').jump_bookmarks('split')")
+    -- Jump to bookmark under the cursor in a vsplit.
+    vim.cmd("command! LTJumpBookmarksVSplit  lua require('litee.bookmarks').jump_bookmarks('vsplit')")
+    -- Jump to bookmark under the cursor in a tab.
+    vim.cmd("command! LTJumpBookmarksTab     lua require('litee.bookmarks').jump_bookmarks('tab')")
+
+====================================================================================
+MAPPINGS                                                   *litee-bookmarks-mappings*
+
+litee-bookmarks.nvim creates its own buffers for usage and creates buffer local key maps
+for these windows. 
+
+The following key maps are defined and can be reviewed anytime by pressing "?" in
+a litee-bookmarks.nvim window.
+
+    vim.api.nvim_buf_set_keymap(buf, "n", "<CR>", ":LTJumpBookmarks<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n", "s",  ":LTJumpBookmarksSplit<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n", "v",  ":LTJumpBookmarksVSplit<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n", "t",  ":LTJumpBookmarksTab<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n", "H",  ":LTHideBookmarks<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n", "X",  ":LTCloseBookmarks<CR>", opts)
+
+====================================================================================
+CONFIG                                                       *litee-bookmarks-config*
+
+`litee-bookmarks.nvim` is dependent on the `litee.nvim` library and will not
+export any commands unless this depedency is present. 
+
+Ensure the `litee.lib` can be correctly imported for `litee-bookmarks.nvim` to
+work correctly.
+
+The config table is described below:
+
+    M.config = {
+        -- where litee-bookmarks will store notebook files containing
+        -- bookmarks.
+        notebook_root_dir = "~/.litee-notebooks",
+        -- the jump_mode used for jumping from
+        -- bookmarks node to source code line. 
+        -- "invoking" will use the last window that invoked the bookmarks (feels natural)
+        -- "neighbor" will use the closest neighbor opposite to the panel orientation 
+        -- (if panel is left, uses window to the right.)
+        jump_mode = "invoking",
+        -- enables hiding the cursor inside the Filetree UI.
+        hide_cursor = true,
+        -- Maps arrow keys to resizing the Filetree UI within the `litee.nvim` Panel.
+        map_resize_keys = true,
+        -- Disables all highlighting.
+        no_hls = false,
+        -- Determines if initial creation of a bookmarks opens in the
+        -- Panel or in a Popout window. Options are "panel" or "popout"
+        on_open = "popout"
+    }
+
+Any overrides to this table can be supplied in the setup function:
+    `require('litee.bookmarks').setup({no_hls = true})`
+
+The above is an example of turning off all highlights but leaving all
+other values their default.
+
+To customize the panel orientation, notifications, etc... you should
+configure `litee.lib` to your liking. For example:
+
+    require('litee.lib').setup({
+        tree = {
+            icon_set = "codicons"
+        },
+        panel = {
+            orientation = "left",
+            panel_size  = 30
+        }
+    })
+
+See (:h litee-config) for full details on configuring the litee.nvim library.
+
+For an example configuration with suggested keymaps refer to my dotfiles:
+https://github.com/ldelossa/dotfiles/blob/master/nvim/lua/configs/litee.lua
+
+====================================================================================
+Highlights                                               *litee-bookmarks-highlights*
+
+See (:h litee-lib-highlights) for more details.

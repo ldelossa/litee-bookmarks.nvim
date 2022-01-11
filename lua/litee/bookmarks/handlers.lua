@@ -4,6 +4,7 @@ local lib_tree          = require('litee.lib.tree')
 local lib_tree_node     = require('litee.lib.tree.node')
 local lib_path          = require('litee.lib.util.path')
 local lib_notify        = require('litee.lib.notify')
+local lib_win           = require('litee.lib.util.window')
 
 local config            = require('litee.bookmarks.config').config
 local marshal_func      = require('litee.bookmarks.marshal').marshal_func
@@ -11,6 +12,33 @@ local encoding          = require('litee.bookmarks.encoding')
 local notebook          = require('litee.bookmarks.notebook')
 
 local M = {}
+
+function M.highlight_buffer()
+    local cur_win       = vim.api.nvim_get_current_win()
+    local cur_tabpage   = vim.api.nvim_win_get_tabpage(cur_win)
+    local cur_buf_name  = vim.fn.expand("%:p")
+    local comp_state    = lib_state.get_component_state(cur_tabpage, "bookmarks")
+
+    if
+        comp_state == nil or
+        comp_state.tree == nil or
+        lib_win.inside_component_win()
+    then
+        return
+    end
+
+    local t = lib_tree.get_tree(comp_state.tree)
+    if t == nil or t.root == nil then
+        return
+    end
+
+    for _, child in ipairs(t.root.children) do
+        local child_buf_name = child.location.uri
+        child_buf_name = lib_path.strip_file_prefix(child_buf_name)
+        if child_buf_name == cur_buf_name then
+        end
+    end
+end
 
 -- bookmarks_handler handles the initial request for creating
 -- a bookmarks UI for a particular tab.
@@ -45,7 +73,6 @@ function M.bookmarks_handler(notebook_name)
     local name = lib_path.basename(notebook_name)
     local root = lib_tree_node.new_node(name, key, 0)
     root.location = nil -- not jumpable.
-    root.details = "Notebook"
     root.notebook = notebook_name
 
     -- check if bookmark file exists

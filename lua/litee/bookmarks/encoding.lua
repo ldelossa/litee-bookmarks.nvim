@@ -11,13 +11,13 @@ local M = {}
 -- into a bookmark file line suitable for saving
 -- on disk.
 function M.encode_node(node)
-    local line = ""
-    local file_and_linenr = vim.fn.split(node.key, ":")
-    local file = lib_path.safe_encode(file_and_linenr[1])
-    local linenr = file_and_linenr[2]
-    local name = lib_path.safe_encode(node.name)
-    local details = lib_path.safe_encode(node.details)
-    line = string.format("%s:%s:%s:%s", file, linenr, name, details)
+    local line  = ""
+    local file_start_and_end = vim.fn.split(node.key, ":")
+    local file  = lib_path.safe_encode(file_start_and_end[1])
+    local start_line = node.location.range["start"].line+1
+    local end_line  = node.location.range["end"].line+1
+    local name  = lib_path.safe_encode(node.name)
+    line = string.format("%s:%s:%s:%s", file, start_line, end_line, name)
     return line
 end
 
@@ -33,16 +33,16 @@ function M.decode_node(line)
 
     -- decode our elements
     local bookmarked_file   = lib_path.safe_decode(elements[1])
-    local linenr            = tonumber(lib_path.safe_decode(elements[2]))
-    local name              = lib_path.safe_decode(elements[3])
-    local details           = lib_path.safe_decode(elements[4])
+    local start_line        = tonumber(lib_path.safe_decode(elements[2]))
+    local end_line          = tonumber(lib_path.safe_decode(elements[3]))
+    local name              = lib_path.safe_decode(elements[4])
     bookmarked_file         = lib_path.safe_decode(bookmarked_file)
-    local key               = string.format("%s:%s", bookmarked_file, linenr)
+    local key               = string.format("%s:%s:%s", bookmarked_file, start_line, end_line)
 
     -- create location object
     local range = {}
-    range["start"] = { line = linenr-1, character = 0}
-    range["end"] = range["start"]
+    range["start"] = { line = start_line-1, character = 0}
+    range["end"] = { line = end_line-1, character = 0}
     local location = {
         uri = lib_path.add_file_prefix(bookmarked_file),
         range =  range
@@ -53,7 +53,6 @@ function M.decode_node(line)
     -- pseudo root.
     local node = lib_tree_node.new_node(name, key, 1)
     node.location = location
-    node.details = details
     return node
 end
 

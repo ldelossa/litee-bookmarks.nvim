@@ -2,14 +2,11 @@ local lib_state     = require('litee.lib.state')
 local lib_tree      = require('litee.lib.tree')
 local lib_tree_node = require('litee.lib.tree.node')
 local lib_panel     = require('litee.lib.panel')
-local lib_lsp       = require('litee.lib.lsp')
 local lib_jumps     = require('litee.lib.jumps')
 local lib_navi      = require('litee.lib.navi')
 local lib_util      = require('litee.lib.util')
 local lib_util_win  = require('litee.lib.util.window')
 local lib_notify    = require('litee.lib.notify')
-local lib_hover     = require('litee.lib.lsp.hover')
-local lib_details   = require('litee.lib.details')
 local lib_path      = require('litee.lib.util.path')
 
 local config        = require('litee.bookmarks.config').config
@@ -240,7 +237,7 @@ function M.delete_bookmark()
     notebook.encode_tree_to_notebook(t.root, notebook_file)
 end
 
-function M.create_bookmark()
+function M.create_bookmark(start_line, end_line)
     local ctx = ui_req_ctx()
     if
         ctx.state == nil
@@ -271,7 +268,7 @@ function M.create_bookmark()
     -- get bookmark name from user, rest of logic is in callback.
     vim.ui.input({prompt="Name your new bookmark: "}, function(input)
         -- create node representing bookmark.
-        local key = string.format("%s:%d", cur_file, cur_linenr[1])
+        local key = string.format("%s:%d:%d", cur_file, start_line, end_line)
 
         local node = lib_tree_node.new_node(input, key, 1)
 
@@ -279,8 +276,8 @@ function M.create_bookmark()
 
         -- create location obj
         local range = {}
-        range["start"] = { line = cur_linenr[1]-1, character = 0}
-        range["end"] = range["start"]
+        range["start"] = {line = start_line-1, character = 0}
+        range["end"] = {line = end_line-1, character=0}
         local location = {
             uri = lib_path.add_file_prefix(cur_file),
             range =  range
@@ -417,6 +414,9 @@ function M.setup(user_config)
         lib_notify.notify_popup_with_timeout("Failed to create notebook_root_dir, cannot continue.", 1750, "error")
     end
 
+    if config.virtual_text then
+        vim.cmd([[au BufEnter,CursorHold,CursorHoldI * lua require('litee.bookmarks.autocmds').set_virtualtext()]])
+    end
 
     lib_panel.register_component("bookmarks", pre_window_create, post_window_create)
 

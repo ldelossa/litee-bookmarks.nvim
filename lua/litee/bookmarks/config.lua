@@ -8,6 +8,7 @@ M.config = {
     map_resize_keys = true,
     use_web_devicons = true,
     on_open = "popout",
+    virtual_text = true
 }
 
 return M

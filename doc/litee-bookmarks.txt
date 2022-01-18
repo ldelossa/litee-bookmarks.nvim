@@ -175,7 +175,10 @@ The config table is described below:
         on_open = "popout",
         -- Use virtual text to right-align a Bookmark indicator inside
         -- the source code buffer.
-        virtual_text = true
+        virtual_text = true,
+        -- Where to place the vitual text. 
+        -- Valid options "eol", "right-aligned"
+        virtual_text_pos = "eol"
     }
 
 Any overrides to this table can be supplied in the setup function:

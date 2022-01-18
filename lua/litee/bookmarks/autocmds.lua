@@ -113,7 +113,7 @@ function M.set_virtualtext()
         if child_uri == buf_name then
             local start_line = child.location.range["start"].line
             local opts = {
-                virt_text_pos = "right_align",
+                virt_text_pos = config.virtual_text_pos,
                 virt_text = {{string.format("%s  %s", icon_set["Bookmark"], child.name), lib_hi.hls.SymbolDetailHL}},
             }
             local extmark = {

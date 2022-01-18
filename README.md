@@ -42,6 +42,10 @@ To create an "arbitrary" `Notebook` pass a notebook name to "LTCreateNotebook".
 You can then use the `LTListNotebooks` to get a `vim.ui.select` promp which lists 
 all created `Notebooks` and will open one on selection.
 
+Bookmarks are displayed via virtual text in the buffer and will function with the same properties as Neovim marks.
+
+!["bookmark virt text"](./contrib/virt_text_bookmark.png)
+
 Like all `litee.nvim` backed plugins the UI will work with other `litee.nvim` plugins, 
 keeping its appropriate place in a collapsible panel.
 

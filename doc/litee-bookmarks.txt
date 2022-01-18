@@ -172,7 +172,10 @@ The config table is described below:
         no_hls = false,
         -- Determines if initial creation of a bookmarks opens in the
         -- Panel or in a Popout window. Options are "panel" or "popout"
-        on_open = "popout"
+        on_open = "popout",
+        -- Use virtual text to right-align a Bookmark indicator inside
+        -- the source code buffer.
+        virtual_text = true
     }
 
 Any overrides to this table can be supplied in the setup function:

@@ -36,7 +36,7 @@ function M._setup_buffer(name, buf, tab)
     vim.api.nvim_buf_set_keymap(buf, "n",   "v",      ":LTJumpBookmarksVSplit<CR>", opts)
     vim.api.nvim_buf_set_keymap(buf, "n",   "t",      ":LTJumpBookmarksTab<CR>", opts)
     vim.api.nvim_buf_set_keymap(buf, "n",   "H",      ":LTHideBookmarks<CR>", opts)
-    vim.api.nvim_buf_set_keymap(buf, "n",   "X",      ":LTCloseBookmarks<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n",   "X",      ":LTCloseNotebook<CR>", opts)
     vim.api.nvim_buf_set_keymap(buf, "n",   "<Esc>",  ":LTClosePanelPopOut<CR>", opts)
     vim.api.nvim_buf_set_keymap(buf, "n",   "?",      ":lua require('litee.bookmarks').help(true)<CR>", opts)
 	if config.map_resize_keys then

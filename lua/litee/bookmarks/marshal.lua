@@ -1,5 +1,6 @@
 local config    = require('litee.bookmarks.config').config
 local lib_icons = require('litee.lib.icons')
+local lib_path  = require('litee.lib.util.path')
 
 local M = {}
 
@@ -17,7 +18,13 @@ function M.marshal_func(node)
 
     name = node.name
 
-    detail = node.details
+    if node.location ~= nil then
+        local file = node.location.uri
+        file = lib_path.relative_path_from_uri(file)
+        detail = string.format("%s lines:%d:%d", lib_path.basename(file), node.location.range["start"].line+1, node.location.range["end"].line+1)
+    else
+        detail = "Notebook"
+    end
 
     if node.depth == 0 then
         icon = icon_set["Notebook"]

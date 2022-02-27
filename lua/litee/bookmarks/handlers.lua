@@ -78,7 +78,7 @@ function M.bookmarks_handler(notebook_name)
     -- check if bookmark file exists
     local bookmark_file = notebook.get_notebook(notebook_name)
     if bookmark_file == nil then
-        lib_notify.notify_popup_with_timeout("Could not find notebook " .. notebook_name, 1000, "error")
+        lib_notify.notify_popup_with_timeout("Could not find notebook " .. notebook_name, 1750, "error")
         return
     end
 

@@ -30,15 +30,15 @@ function M._setup_buffer(name, buf, tab)
 
     -- set buffer local keymaps
     local opts = {silent=true}
-    vim.api.nvim_buf_set_keymap(buf, "n",   "D",      ":LTDeleteBookmark<CR>", opts)
-    vim.api.nvim_buf_set_keymap(buf, "n",   "<CR>",   ":LTJumpBookmarks<CR>", opts)
-    vim.api.nvim_buf_set_keymap(buf, "n",   "s",      ":LTJumpBookmarksSplit<CR>", opts)
-    vim.api.nvim_buf_set_keymap(buf, "n",   "v",      ":LTJumpBookmarksVSplit<CR>", opts)
-    vim.api.nvim_buf_set_keymap(buf, "n",   "t",      ":LTJumpBookmarksTab<CR>", opts)
-    vim.api.nvim_buf_set_keymap(buf, "n",   "H",      ":LTHideBookmarks<CR>", opts)
-    vim.api.nvim_buf_set_keymap(buf, "n",   "X",      ":LTCloseNotebook<CR>", opts)
-    vim.api.nvim_buf_set_keymap(buf, "n",   "<Esc>",  ":LTClosePanelPopOut<CR>", opts)
-    vim.api.nvim_buf_set_keymap(buf, "n",   "?",      ":lua require('litee.bookmarks').help(true)<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n",   config.keymaps.delete,      ":LTDeleteBookmark<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n",   config.keymaps.jump,   ":LTJumpBookmarks<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n",   config.keymaps.jump_split,      ":LTJumpBookmarksSplit<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n",   config.keymaps.jump_vsplit,      ":LTJumpBookmarksVSplit<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n",   config.keymaps.jump_tab,      ":LTJumpBookmarksTab<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n",   config.keymaps.hide,      ":LTHideBookmarks<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n",   config.keymaps.close,      ":LTCloseNotebook<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n",   config.keymaps.close_panel_pop_out,  ":LTClosePanelPopOut<CR>", opts)
+    vim.api.nvim_buf_set_keymap(buf, "n",   config.keymaps.help,      ":lua require('litee.bookmarks').help(true)<CR>", opts)
 	if config.map_resize_keys then
            lib_util_buf.map_resize_keys(panel_config.orientation, buf, opts)
     end

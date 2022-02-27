@@ -9,7 +9,19 @@ M.config = {
     use_web_devicons = true,
     on_open = "popout",
     virtual_text = true,
-    virtual_text_pos = "eol"
+    virtual_text_pos = "eol",
+    keymaps = {
+      jump = "<CR>",
+      jump_split = "s",
+      jump_vsplit = "v",
+      jump_tab = "t",
+      details = "d",
+      close = "X",
+      close_panel_pop_out = "<Esc>",
+      help = "?",
+      hide = "H",
+      delete = "D",
+    },
 }
 
 return M

@@ -8,6 +8,7 @@ local lib_util      = require('litee.lib.util')
 local lib_util_win  = require('litee.lib.util.window')
 local lib_notify    = require('litee.lib.notify')
 local lib_path      = require('litee.lib.util.path')
+local bookmarks_help_buf = require('litee.bookmarks.help_buffer')
 
 local config        = require('litee.bookmarks.config').config
 local marshal_func  = require('litee.bookmarks.marshal').marshal_func
@@ -71,6 +72,7 @@ end
 function M.open_notebook(notebook_name)
     if notebook_name == nil or notebook_name == "" then
         M.open_notebook_by_select()
+        return
     end
     handlers.bookmarks_handler(notebook_name)
 end
@@ -391,6 +393,41 @@ local function bookmarks_buffer_search()
     return nil
 end
 
+function M.help(display)
+    local ctx = ui_req_ctx()
+    if
+        ctx.state == nil or
+        ctx.cursor == nil or
+        ctx.state["bookmarks"].tree == nil
+    then
+        lib_notify.notify_popup_with_timeout("Must open a notebook first with 'LTOpenNotebook", 1750, "error")
+        return
+    end
+    if display then
+        vim.api.nvim_win_set_buf(ctx.state["bookmarks"].win, bookmarks_help_buf.help_buffer)
+    else
+        vim.api.nvim_win_set_buf(ctx.state["bookmarks"].win, ctx.state["bookmarks"].buf)
+    end
+end
+
+local function merge_configs(user_config)
+    -- merge keymaps
+    if user_config.keymaps ~= nil then
+        for k, v in pairs(user_config.keymaps) do
+            config.keymaps[k] = v
+        end
+    end
+
+    -- merge top levels
+    for k, v in pairs(user_config) do
+        if k == "keymaps" then
+            goto continue
+        end
+        config[k] = v
+        ::continue::
+    end
+end
+
 function M.setup(user_config)
     local function pre_window_create(state)
         if state["bookmarks"].tree == nil then
@@ -428,9 +465,7 @@ function M.setup(user_config)
 
     -- merge in config
     if user_config ~= nil then
-        for key, val in pairs(user_config) do
-            config[key] = val
-        end
+        merge_configs(user_config)
     end
 
     if not pcall(require, "litee.lib") then

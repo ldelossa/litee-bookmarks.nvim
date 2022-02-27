@@ -34,6 +34,7 @@ function M.get_notebook(notebook_name)
     local notebook_dir = vim.fn.getcwd()
     local notebook_dir_encoded = lib_path.safe_encode(vim.fn.expand(notebook_dir))
     notebook_dir = create_notebook_file_path(notebook_dir_encoded)
+    local project_root = lib_path.safe_decode(lib_path.basename(notebook_dir))
 
     notebook_name = vim.fn.expand(notebook_name)
     local notebook_name_encoded = lib_path.safe_encode(notebook_name)
@@ -41,21 +42,21 @@ function M.get_notebook(notebook_name)
     if not lib_path.file_exists(notebook_file) then
         return nil
     end
-    return notebook_file
+    return notebook_file, project_root
 end
 
 function M.list_notebooks()
-    local notebook_dir = vim.fn.getcwd()
-    local notebook_dir_encoded = lib_path.safe_encode(vim.fn.expand(notebook_dir))
-    notebook_dir = create_notebook_file_path(notebook_dir_encoded)
+    local project_root = vim.fn.getcwd()
+    local notebook_dir_encoded = lib_path.safe_encode(vim.fn.expand(project_root))
+    local project_root_decoded = create_notebook_file_path(notebook_dir_encoded)
 
-    local notebook_files = vim.fn.readdir(vim.fn.expand(notebook_dir))
+    local notebook_files = vim.fn.readdir(vim.fn.expand(project_root_decoded))
     local notebooks = {}
     for _, notebook_file in ipairs(notebook_files) do
         local decoded = lib_path.safe_decode(notebook_file)
         table.insert(notebooks, decoded)
     end
-    return notebooks
+    return notebooks, project_root
 end
 
 function M.list_notebook_dirs()
@@ -82,8 +83,6 @@ end
 function M.move_notebook_repo(old, new)
     local old_encoded = create_notebook_file_path(lib_path.safe_encode(old))
     local new_encoded = create_notebook_file_path(lib_path.safe_encode(new))
-    print(vim.inspect(old_encoded))
-    print(vim.inspect(new_encoded))
     vim.fn.rename(old_encoded, new_encoded)
 end
 

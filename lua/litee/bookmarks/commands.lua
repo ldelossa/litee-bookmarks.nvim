@@ -11,7 +11,7 @@ function M.setup()
     -- Lists created notebooks in a vim.ui.select prompt and deletes a selected one.
     vim.cmd("command! LTDeleteNotebook          lua require('litee.bookmarks').delete_notebook_by_select()")
     -- Move all notebooks associated with a root source code directory to the currently opened one.
-    vim.cmd("command! LTMigrateNotebooks        lua require('litee.bookmarks').delete_notebook_by_select()")
+    vim.cmd("command! LTMigrateNotebooks        lua require('litee.bookmarks').migrate_notebooks()")
     -- Creates a bookmark in the currently opened notebook.
     vim.cmd("command! -range LTCreateBookmark   lua require('litee.bookmarks').create_bookmark(<line1>, <line2>)")
     -- Deletes a bookmark in the currently opened notebook.

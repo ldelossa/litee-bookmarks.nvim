@@ -76,7 +76,7 @@ function M.bookmarks_handler(notebook_name)
     root.notebook = notebook_name
 
     -- check if bookmark file exists
-    local bookmark_file = notebook.get_notebook(notebook_name)
+    local bookmark_file, project_root = notebook.get_notebook(notebook_name)
     if bookmark_file == nil then
         lib_notify.notify_popup_with_timeout("Could not find notebook " .. notebook_name, 1750, "error")
         return
@@ -89,7 +89,7 @@ function M.bookmarks_handler(notebook_name)
     end
     local children = {}
     for line in file_iter do
-        local child_node = encoding.decode_node(line)
+        local child_node = encoding.decode_node(project_root, line)
         table.insert(children, child_node)
     end
 

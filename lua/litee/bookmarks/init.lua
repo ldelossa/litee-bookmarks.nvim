@@ -78,11 +78,11 @@ function M.open_notebook(notebook_name)
 end
 
 function M.open_notebook_by_select()
-    local notebooks = notebook.list_notebooks()
+    local notebooks, project_root = notebook.list_notebooks()
     if #notebooks == 0 then
         lib_notify.notify_popup_with_timeout("You must first create a notebook with LTCreateNotebook", 7500, "error")
     end
-    vim.ui.select(notebooks, { prompt = "Select a notebook to open: " }, function(item, _)
+    vim.ui.select(notebooks, { prompt = string.format("Select a notebook to open for project '%s': ", lib_path.basename(project_root)) }, function(item, _)
         if item == nil then
             return
         end
@@ -210,11 +210,11 @@ function M.hide_notebook()
 end
 
 function M.delete_notebook_by_select()
-    local notebooks = notebook.list_notebooks()
+    local notebooks, project_root = notebook.list_notebooks()
     if #notebooks == 0 then
         lib_notify.notify_popup_with_timeout("No notebooks to delete", 7500, "info")
     end
-    vim.ui.select(notebooks, { prompt = "Select a notebook to open: " }, function(item, _)
+    vim.ui.select(notebooks, { prompt = string.format("Select a notebook to delete for project '%s': ", lib_path.basename(project_root))}, function(item, _)
         if item == nil then
             return
         end
@@ -286,7 +286,7 @@ function M.create_bookmark(start_line, end_line)
 
     -- root of a notebook tree will have the notebook name, and we
     -- can retrieve the notebook_file from this.
-    local notebook_file = notebook.get_notebook(t.root.notebook)
+    local notebook_file, project_root = notebook.get_notebook(t.root.notebook)
     if notebook_file == nil then
         return
     end
@@ -294,11 +294,15 @@ function M.create_bookmark(start_line, end_line)
     -- get current file and line number
     local cur_file = vim.fn.expand('%:p')
     local cur_linenr = vim.api.nvim_win_get_cursor(0)
+    local rel_file = lib_path.strip_path_prefix(project_root, cur_file)
 
     -- get bookmark name from user, rest of logic is in callback.
     vim.ui.input({prompt="Name your new bookmark: "}, function(input)
+        if input == nil then
+            return
+        end
         -- create node representing bookmark.
-        local key = string.format("%s:%d:%d", cur_file, start_line, end_line)
+        local key = string.format("%s:%d:%d", rel_file, start_line, end_line)
 
         local node = lib_tree_node.new_node(input, key, 1)
 
@@ -309,7 +313,7 @@ function M.create_bookmark(start_line, end_line)
         range["start"] = {line = start_line-1, character = 0}
         range["end"] = {line = end_line-1, character=0}
         local location = {
-            uri = lib_path.add_file_prefix(cur_file),
+            uri = lib_path.add_file_prefix(project_root) .. rel_file,
             range =  range
         }
         node.location = location

@@ -68,6 +68,13 @@ local function ui_req_ctx()
     }
 end
 
+function M.open_notebook(notebook_name)
+    if notebook_name == nil or notebook_name == "" then
+        M.open_notebook_by_select()
+    end
+    handlers.bookmarks_handler(notebook_name)
+end
+
 function M.open_notebook_by_select()
     local notebooks = notebook.list_notebooks()
     if #notebooks == 0 then
@@ -81,37 +88,58 @@ function M.open_notebook_by_select()
     end)
 end
 
-function M.create_notebook(notebook_name)
-    if notebook_name == nil or notebook_name == "" then
-        notebook_name = vim.fn.getcwd()
-    end
-
-    local create = function ()
-        local fd = notebook.create_notebook(notebook_name)
-        if fd ~= nil then
-            fd:close()
-        else
-            lib_notify.notify_popup_with_timeout("Failed to create notebook", 7500, "error")
+function M.create_notebook()
+    vim.ui.input({prompt = string.format("Please enter notebook name: ")},
+    function(notebook_name)
+        if notebook_name == nil then
+            return
         end
-        lib_notify.notify_popup_with_timeout("Created notebook: " .. notebook_name, 7500, "info")
-    end
 
-    local nb_file = notebook.get_notebook(notebook_name)
-    if nb_file ~= nil then
-        vim.ui.input({prompt = string.format("Notebook %s already exists, overwrite? (bookmarks deleted) (y/n) ", notebook_name)},
-        function(input)
-            if input == nil then
-                return
+        local create = function()
+            local fd = notebook.create_notebook(notebook_name)
+            if fd ~= nil then
+                fd:close()
+            else
+                lib_notify.notify_popup_with_timeout("Failed to create notebook", 7500, "error")
             end
-            if input == "y" then
-                create()
-            elseif input ~= "n" then
-                lib_notify.notify_popup_with_timeout(string.format("Did not understand %s please try again and use `y` or `n`", input), 7500, "error")
-            end
-        end)
-    else
+            lib_notify.notify_popup_with_timeout("Created notebook: " .. notebook_name, 7500, "info")
+            handlers.bookmarks_handler(notebook_name)
+        end
+
+        local nb_file = notebook.get_notebook(notebook_name)
+
+        -- handle if notebook already exists
+        if nb_file ~= nil then
+            vim.ui.input({prompt = string.format("Notebook %s already exists, overwrite? (bookmarks deleted) (y/n) ", notebook_name)},
+            function(input)
+                if input == nil then
+                    return
+                end
+                if input == "y" then
+                    create()
+                elseif input ~= "n" then
+                    lib_notify.notify_popup_with_timeout(string.format("Did not understand %s please try again and use `y` or `n`", input), 7500, "error")
+                end
+            end)
+            return
+        end
+        -- if it doesn't just create.
         create()
+    end)
+end
+
+function M.migrate_notebooks()
+    local notebook_dirs = notebook.list_notebook_dirs_decoded()
+    if notebook_dirs == nil then
+        return
     end
+    vim.ui.select(
+        notebook_dirs,
+        {prompt = "Select a notebook directory to migrate: "},
+        function(choice)
+            notebook.migrate_notebook_cwd(choice)
+        end
+    )
 end
 
 function M.open_to()

@@ -32,16 +32,25 @@ Usage                                                         *litee-bookmarks-u
 
 In `litee-bookmarks` `Bookmarks` are organized into `Notebooks`. 
 
+Notebooks are tied to a source code repository. Therefore, when listing notebooks
+you will only see notebooks created for the current source code root.
+
+This means that to use this plugin correctly it expects you to open `neovim` at 
+the root of your source code repository when working on that code.
+
+It also means if you have a complex sub-directory in a source code repository which
+you work on as an isolated entity, you can open `neovim` to this dir and create its
+own isolated set of notebooks.
+
 `Notebooks' can be created with the "LTCreateNotebook" command. 
 
-Without any arguments this creates a `Notebook` associated with Neovim's 
-current working directory, which is typically your project's root if you're
-using an LSP.
+You can open notebooks with the "LTOpenNotebook" command. 
 
-You can then open the notebook with the "LTOpenNotebook" command. 
+Without any arguments this will list all notebooks associated with the currently
+opened source code repository.
 
-Without any arguments this opens the notebook associated with your project's 
-root.
+You can then use the `LTListNotebooks` to get a `vim.ui.select` promp which lists 
+all created `Notebooks` for the currently opened source code repository.
 
 Once a `Notebook` has been opened you can begin creating `Bookmarks` with the 
 `LTCreateBookmark` command. 
@@ -49,13 +58,8 @@ Once a `Notebook` has been opened you can begin creating `Bookmarks` with the
 You can remove a `Bookmark` by placing your cursor over it and issuing the 
 `LTDeleteBookmark` command.
 
-`litee-bookmarks` also supports "arbitrary" `Notebooks`, ones which are associated
-with no projects at all.
-
-To create an "arbitrary" `Notebook` pass a notebook name to "LTCreateNotebook". 
-
-You can then use the `LTListNotebooks` to get a `vim.ui.select` promp which lists 
-all created `Notebooks` and will open one on selection.
+If you move a souce code repository to a new location you can use `LTMigrateNotebooks`
+to move the associated notebooks as well.
 
 Like all `litee.nvim` backed plugins the UI will work with other `litee.nvim` plugins, 
 keeping its appropriate place in a collapsible panel.
@@ -89,43 +93,43 @@ To toggle the panel open and close use the following command
     -- size (width for left/right, height for top/bottom) are remembered.
     vim.cmd("command! LTPanel       lua require('litee.ui').toggle_panel()")
 
-    -- Create a notebook.
-    -- If no argument is given a notebook is created associated with Neovim's `cwd`
-    -- When an argument is provided an arbitrary named notebook is created not associated
-    -- with any project.
-    vim.cmd("command! LTCreateNotebook       lua require('litee.bookmarks').create_notebook(<args>)")
-    -- Opens a created notebook.
-    -- If no argument is given a search for a notebook associated with `cwd` will be done.
-    -- If an argument is given a search for the provided arbitrary notebook is done.
-    vim.cmd("command! LTOpenNotebook         lua require('litee.bookmarks.handlers').bookmarks_handler(<args>)")
-    -- Lists created notebooks in a vim.ui.select prompt.
-    vim.cmd("command! LTListNotebooks        lua require('litee.bookmarks').open_notebook_by_select()")
+    -- Create a notebook and open it.
+    vim.cmd("command! LTCreateNotebook lua require('litee.bookmarks').create_notebook()")
+    -- Opens a created notebook by name, is no name is provided LTListNotebooks is called to list 
+    -- available notebooks.
+    vim.cmd("command! LTOpenNotebook            lua require('litee.bookmarks').open_notebook(<args>)")
+    -- Lists created notebooks in a vim.ui.select prompt for opening.
+    vim.cmd("command! LTListNotebooks           lua require('litee.bookmarks').open_notebook_by_select()")
+    -- Lists created notebooks in a vim.ui.select prompt and deletes a selected one.
+    vim.cmd("command! LTDeleteNotebook          lua require('litee.bookmarks').delete_notebook_by_select()")
+    -- Move all notebooks associated with a root source code directory to the currently opened one.
+    vim.cmd("command! LTMigrateNotebooks        lua require('litee.bookmarks').delete_notebook_by_select()")
     -- Creates a bookmark in the currently opened notebook.
-    vim.cmd("command! LTCreateBookmark       lua require('litee.bookmarks').create_bookmark()")
+    vim.cmd("command! -range LTCreateBookmark   lua require('litee.bookmarks').create_bookmark(<line1>, <line2>)")
     -- Deletes a bookmark in the currently opened notebook.
-    vim.cmd("command! LTDeleteBookmark       lua require('litee.bookmarks').delete_bookmark()")
+    vim.cmd("command! LTDeleteBookmark          lua require('litee.bookmarks').delete_bookmark()")
     -- Opens the `litee.nvim` panel directly to the notebook window.
-    vim.cmd("command! LTOpenToNotebook       lua require('litee.bookmarks').open_to()")
+    vim.cmd("command! LTOpenToNotebook          lua require('litee.bookmarks').open_to()")
     -- Opens the notebook window in a `litee.nvim` popout panel.
-    vim.cmd("command! LTPopOutNotebook       lua require('litee.bookmarks').popout_to()")
+    vim.cmd("command! LTPopOutNotebook          lua require('litee.bookmarks').popout_to()")
     -- Closes the notebook and removes its state from Neovim.
     -- Will not show up after a panel toggle.
-    vim.cmd("command! LTCloseNotebook        lua require('litee.bookmarks').close_notebook()")
+    vim.cmd("command! LTCloseNotebook           lua require('litee.bookmarks').close_notebook()")
     -- Hides the notebook from the `litee.nvim` panel but leaves state in Neovim.
     -- Will appear againt after a panel toggle.
-    vim.cmd("command! LTHideBookmarks        lua require('litee.bookmarks').hide_bookmarks()")
+    vim.cmd("command! LTHideBookmarks           lua require('litee.bookmarks').hide_bookmarks()")
     -- Move to next bookmark in the notebook window
-    vim.cmd("command! LTNextBookmarks        lua require('litee.bookmarks').navigation('n')")
+    vim.cmd("command! LTNextBookmarks           lua require('litee.bookmarks').navigation('n')")
     -- Move to previous bookmark in the notebook window
-    vim.cmd("command! LTPrevBookmarks        lua require('litee.bookmarks').navigation('p')")
+    vim.cmd("command! LTPrevBookmarks           lua require('litee.bookmarks').navigation('p')")
     -- Jump to bookmark under the cursor
-    vim.cmd("command! LTJumpBookmarks        lua require('litee.bookmarks').jump_bookmarks()")
+    vim.cmd("command! LTJumpBookmarks           lua require('litee.bookmarks').jump_bookmarks()")
     -- Jump to bookmark under the cursor in a split.
-    vim.cmd("command! LTJumpBookmarksSplit   lua require('litee.bookmarks').jump_bookmarks('split')")
+    vim.cmd("command! LTJumpBookmarksSplit      lua require('litee.bookmarks').jump_bookmarks('split')")
     -- Jump to bookmark under the cursor in a vsplit.
-    vim.cmd("command! LTJumpBookmarksVSplit  lua require('litee.bookmarks').jump_bookmarks('vsplit')")
+    vim.cmd("command! LTJumpBookmarksVSplit     lua require('litee.bookmarks').jump_bookmarks('vsplit')")
     -- Jump to bookmark under the cursor in a tab.
-    vim.cmd("command! LTJumpBookmarksTab     lua require('litee.bookmarks').jump_bookmarks('tab')")
+    vim.cmd("command! LTJumpBookmarksTab        lua require('litee.bookmarks').jump_bookmarks('tab')")
 
 ====================================================================================
 MAPPINGS                                                   *litee-bookmarks-mappings*

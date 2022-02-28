@@ -1,20 +1,17 @@
 local M = {}
 
 function M.setup()
-    -- Create a notebook.
-    -- If no argument is given a notebook is created associated with Neovim's `cwd`
-    -- When an argument is provided an arbitrary named notebook is created not associated
-    -- with any project.
-    vim.cmd("command! -nargs=? LTCreateNotebook lua require('litee.bookmarks').create_notebook(<args>)")
-    -- Opens a created notebook.
-    -- If no argument is given a search for a notebook associated with `cwd` will be done.
-    -- If an argument is given a search for the provided arbitrary notebook is done.
-    vim.cmd("command! LTOpenNotebook            lua require('litee.bookmarks.handlers').bookmarks_handler(<args>)")
-    -- Lists created notebooks in a vim.ui.select prompt.
-    vim.cmd("command! LTListNotebooks        lua require('litee.bookmarks').open_notebook_by_select()")
-    -- Lists created notebooks in a vim.ui.select prompt and deletes a selected
-    -- one.
-    vim.cmd("command! LTDeleteNotebook        lua require('litee.bookmarks').delete_notebook_by_select()")
+    -- Create a notebook and open it.
+    vim.cmd("command! LTCreateNotebook lua require('litee.bookmarks').create_notebook()")
+    -- Opens a created notebook by name, is no name is provided LTListNotebooks is called to list 
+    -- available notebooks.
+    vim.cmd("command! LTOpenNotebook            lua require('litee.bookmarks').open_notebook(<args>)")
+    -- Lists created notebooks in a vim.ui.select prompt for opening.
+    vim.cmd("command! LTListNotebooks           lua require('litee.bookmarks').open_notebook_by_select()")
+    -- Lists created notebooks in a vim.ui.select prompt and deletes a selected one.
+    vim.cmd("command! LTDeleteNotebook          lua require('litee.bookmarks').delete_notebook_by_select()")
+    -- Move all notebooks associated with a root source code directory to the currently opened one.
+    vim.cmd("command! LTMigrateNotebooks        lua require('litee.bookmarks').migrate_notebooks()")
     -- Creates a bookmark in the currently opened notebook.
     vim.cmd("command! -range LTCreateBookmark   lua require('litee.bookmarks').create_bookmark(<line1>, <line2>)")
     -- Deletes a bookmark in the currently opened notebook.

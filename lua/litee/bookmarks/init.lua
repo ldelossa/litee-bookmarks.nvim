@@ -8,6 +8,7 @@ local lib_util      = require('litee.lib.util')
 local lib_util_win  = require('litee.lib.util.window')
 local lib_notify    = require('litee.lib.notify')
 local lib_path      = require('litee.lib.util.path')
+local bookmarks_help_buf = require('litee.bookmarks.help_buffer')
 
 local config        = require('litee.bookmarks.config').config
 local marshal_func  = require('litee.bookmarks.marshal').marshal_func
@@ -68,12 +69,20 @@ local function ui_req_ctx()
     }
 end
 
+function M.open_notebook(notebook_name)
+    if notebook_name == nil or notebook_name == "" then
+        M.open_notebook_by_select()
+        return
+    end
+    handlers.bookmarks_handler(notebook_name)
+end
+
 function M.open_notebook_by_select()
-    local notebooks = notebook.list_notebooks()
+    local notebooks, project_root = notebook.list_notebooks()
     if #notebooks == 0 then
         lib_notify.notify_popup_with_timeout("You must first create a notebook with LTCreateNotebook", 7500, "error")
     end
-    vim.ui.select(notebooks, { prompt = "Select a notebook to open: " }, function(item, _)
+    vim.ui.select(notebooks, { prompt = string.format("Select a notebook to open for project '%s': ", lib_path.basename(project_root)) }, function(item, _)
         if item == nil then
             return
         end
@@ -81,37 +90,58 @@ function M.open_notebook_by_select()
     end)
 end
 
-function M.create_notebook(notebook_name)
-    if notebook_name == nil or notebook_name == "" then
-        notebook_name = vim.fn.getcwd()
-    end
-
-    local create = function ()
-        local fd = notebook.create_notebook(notebook_name)
-        if fd ~= nil then
-            fd:close()
-        else
-            lib_notify.notify_popup_with_timeout("Failed to create notebook", 7500, "error")
+function M.create_notebook()
+    vim.ui.input({prompt = string.format("Please enter notebook name: ")},
+    function(notebook_name)
+        if notebook_name == nil then
+            return
         end
-        lib_notify.notify_popup_with_timeout("Created notebook: " .. notebook_name, 7500, "info")
-    end
 
-    local nb_file = notebook.get_notebook(notebook_name)
-    if nb_file ~= nil then
-        vim.ui.input({prompt = string.format("Notebook %s already exists, overwrite? (bookmarks deleted) (y/n) ", notebook_name)},
-        function(input)
-            if input == nil then
-                return
+        local create = function()
+            local fd = notebook.create_notebook(notebook_name)
+            if fd ~= nil then
+                fd:close()
+            else
+                lib_notify.notify_popup_with_timeout("Failed to create notebook", 7500, "error")
             end
-            if input == "y" then
-                create()
-            elseif input ~= "n" then
-                lib_notify.notify_popup_with_timeout(string.format("Did not understand %s please try again and use `y` or `n`", input), 7500, "error")
-            end
-        end)
-    else
+            lib_notify.notify_popup_with_timeout("Created notebook: " .. notebook_name, 7500, "info")
+            handlers.bookmarks_handler(notebook_name)
+        end
+
+        local nb_file = notebook.get_notebook(notebook_name)
+
+        -- handle if notebook already exists
+        if nb_file ~= nil then
+            vim.ui.input({prompt = string.format("Notebook %s already exists, overwrite? (bookmarks deleted) (y/n) ", notebook_name)},
+            function(input)
+                if input == nil then
+                    return
+                end
+                if input == "y" then
+                    create()
+                elseif input ~= "n" then
+                    lib_notify.notify_popup_with_timeout(string.format("Did not understand %s please try again and use `y` or `n`", input), 7500, "error")
+                end
+            end)
+            return
+        end
+        -- if it doesn't just create.
         create()
+    end)
+end
+
+function M.migrate_notebooks()
+    local notebook_dirs = notebook.list_notebook_dirs_decoded()
+    if notebook_dirs == nil then
+        return
     end
+    vim.ui.select(
+        notebook_dirs,
+        {prompt = "Select a notebook directory to migrate: "},
+        function(choice)
+            notebook.migrate_notebook_cwd(choice)
+        end
+    )
 end
 
 function M.open_to()
@@ -180,11 +210,11 @@ function M.hide_notebook()
 end
 
 function M.delete_notebook_by_select()
-    local notebooks = notebook.list_notebooks()
+    local notebooks, project_root = notebook.list_notebooks()
     if #notebooks == 0 then
         lib_notify.notify_popup_with_timeout("No notebooks to delete", 7500, "info")
     end
-    vim.ui.select(notebooks, { prompt = "Select a notebook to open: " }, function(item, _)
+    vim.ui.select(notebooks, { prompt = string.format("Select a notebook to delete for project '%s': ", lib_path.basename(project_root))}, function(item, _)
         if item == nil then
             return
         end
@@ -256,7 +286,7 @@ function M.create_bookmark(start_line, end_line)
 
     -- root of a notebook tree will have the notebook name, and we
     -- can retrieve the notebook_file from this.
-    local notebook_file = notebook.get_notebook(t.root.notebook)
+    local notebook_file, project_root = notebook.get_notebook(t.root.notebook)
     if notebook_file == nil then
         return
     end
@@ -264,11 +294,15 @@ function M.create_bookmark(start_line, end_line)
     -- get current file and line number
     local cur_file = vim.fn.expand('%:p')
     local cur_linenr = vim.api.nvim_win_get_cursor(0)
+    local rel_file = lib_path.strip_path_prefix(project_root, cur_file)
 
     -- get bookmark name from user, rest of logic is in callback.
     vim.ui.input({prompt="Name your new bookmark: "}, function(input)
+        if input == nil then
+            return
+        end
         -- create node representing bookmark.
-        local key = string.format("%s:%d:%d", cur_file, start_line, end_line)
+        local key = string.format("%s:%d:%d", rel_file, start_line, end_line)
 
         local node = lib_tree_node.new_node(input, key, 1)
 
@@ -279,7 +313,7 @@ function M.create_bookmark(start_line, end_line)
         range["start"] = {line = start_line-1, character = 0}
         range["end"] = {line = end_line-1, character=0}
         local location = {
-            uri = lib_path.add_file_prefix(cur_file),
+            uri = lib_path.add_file_prefix(project_root) .. rel_file,
             range =  range
         }
         node.location = location
@@ -363,6 +397,41 @@ local function bookmarks_buffer_search()
     return nil
 end
 
+function M.help(display)
+    local ctx = ui_req_ctx()
+    if
+        ctx.state == nil or
+        ctx.cursor == nil or
+        ctx.state["bookmarks"].tree == nil
+    then
+        lib_notify.notify_popup_with_timeout("Must open a notebook first with 'LTOpenNotebook", 1750, "error")
+        return
+    end
+    if display then
+        vim.api.nvim_win_set_buf(ctx.state["bookmarks"].win, bookmarks_help_buf.help_buffer)
+    else
+        vim.api.nvim_win_set_buf(ctx.state["bookmarks"].win, ctx.state["bookmarks"].buf)
+    end
+end
+
+local function merge_configs(user_config)
+    -- merge keymaps
+    if user_config.keymaps ~= nil then
+        for k, v in pairs(user_config.keymaps) do
+            config.keymaps[k] = v
+        end
+    end
+
+    -- merge top levels
+    for k, v in pairs(user_config) do
+        if k == "keymaps" then
+            goto continue
+        end
+        config[k] = v
+        ::continue::
+    end
+end
+
 function M.setup(user_config)
     local function pre_window_create(state)
         if state["bookmarks"].tree == nil then
@@ -400,9 +469,7 @@ function M.setup(user_config)
 
     -- merge in config
     if user_config ~= nil then
-        for key, val in pairs(user_config) do
-            config[key] = val
-        end
+        merge_configs(user_config)
     end
 
     if not pcall(require, "litee.lib") then

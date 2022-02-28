@@ -24,7 +24,7 @@ end
 -- decode_node will decode a bookmark file line
 -- into a lib/tree node suitable for usage in a
 -- lib/tree tree.
-function M.decode_node(line)
+function M.decode_node(project_root, line)
     -- split line into encoded elements
     local elements = vim.fn.split(line, ":")
     if #elements ~= 4 then
@@ -44,7 +44,7 @@ function M.decode_node(line)
     range["start"] = { line = start_line-1, character = 0}
     range["end"] = { line = end_line-1, character = 0}
     local location = {
-        uri = lib_path.add_file_prefix(bookmarked_file),
+        uri = lib_path.add_file_prefix(project_root .. (bookmarked_file)),
         range =  range
     }
 

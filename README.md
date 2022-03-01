@@ -17,16 +17,25 @@ implement plugin for creating and saving bookmarks for a project.
 
 In `litee-bookmarks` `Bookmarks` are organized into `Notebooks`. 
 
+Notebooks are tied to a source code repository. Therefore, when listing notebooks
+you will only see notebooks created for the current source code root.
+
+This means that to use this plugin correctly it expects you to open `neovim` at 
+the root of your source code repository when working on that code.
+
+It also means if you have a complex sub-directory in a source code repository which
+you work on as an isolated entity, you can open `neovim` to this dir and create its
+own isolated set of notebooks.
+
 `Notebooks' can be created with the "LTCreateNotebook" command. 
 
-Without any arguments this creates a `Notebook` associated with Neovim's 
-current working directory, which is typically your project's root if you're
-using an LSP.
+You can open notebooks with the "LTOpenNotebook" command. 
 
-You can then open the notebook with the "LTOpenNotebook" command. 
+Without any arguments this will list all notebooks associated with the currently
+opened source code repository.
 
-Without any arguments this opens the notebook associated with your project's 
-root.
+You can then use the `LTListNotebooks` to get a `vim.ui.select` promp which lists 
+all created `Notebooks` for the currently opened source code repository.
 
 Once a `Notebook` has been opened you can begin creating `Bookmarks` with the 
 `LTCreateBookmark` command. 
@@ -34,17 +43,8 @@ Once a `Notebook` has been opened you can begin creating `Bookmarks` with the
 You can remove a `Bookmark` by placing your cursor over it and issuing the 
 `LTDeleteBookmark` command.
 
-`litee-bookmarks` also supports "arbitrary" `Notebooks`, ones which are associated
-with no projects at all.
-
-To create an "arbitrary" `Notebook` pass a notebook name to "LTCreateNotebook". 
-
-You can then use the `LTListNotebooks` to get a `vim.ui.select` promp which lists 
-all created `Notebooks` and will open one on selection.
-
-Bookmarks are displayed via virtual text in the buffer and will function with the same properties as Neovim marks.
-
-!["bookmark virt text"](./contrib/virt_text_bookmark.png)
+If you move a souce code repository to a new location you can use `LTMigrateNotebooks`
+to move the associated notebooks as well.
 
 Like all `litee.nvim` backed plugins the UI will work with other `litee.nvim` plugins, 
 keeping its appropriate place in a collapsible panel.

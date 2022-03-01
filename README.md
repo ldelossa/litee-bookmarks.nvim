@@ -71,7 +71,3 @@ require('litee.lib').setup({})
 -- configure litee-bookmarks.nvim
 require('litee.bookmarks').setup({})
 ```
-
-## Demo
-
-[![litee-bookmarks demo]()](https://user-images.githubusercontent.com/5642902/148882934-a240613a-9f51-4f2e-be13-736ba8bb0cb4.mp4)

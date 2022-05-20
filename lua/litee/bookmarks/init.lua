@@ -477,6 +477,9 @@ function M.setup(user_config)
         return
     end
 
+    -- setup icon_set: this must be non-nil
+    M.icon_set = require('litee.lib').icon_set_update(config.icon_set_custom, config.icon_set)
+
     if vim.fn.mkdir(vim.fn.expand(config.notebook_root_dir), "p") == 0 then
         lib_notify.notify_popup_with_timeout("Failed to create notebook_root_dir, cannot continue.", 1750, "error")
     end

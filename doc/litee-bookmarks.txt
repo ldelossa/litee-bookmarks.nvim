@@ -87,7 +87,7 @@ plugins which display themselves should utilize.
 
 To toggle the panel open and close use the following command 
 (exported on `require('litee.lib').setup()`)
-
+>
     -- Toggle the litee.nvim panel open or close.
     -- When toggled the relative window sizes are reset but the major 
     -- size (width for left/right, height for top/bottom) are remembered.
@@ -130,7 +130,7 @@ To toggle the panel open and close use the following command
     vim.cmd("command! LTJumpBookmarksVSplit     lua require('litee.bookmarks').jump_bookmarks('vsplit')")
     -- Jump to bookmark under the cursor in a tab.
     vim.cmd("command! LTJumpBookmarksTab        lua require('litee.bookmarks').jump_bookmarks('tab')")
-
+<
 ====================================================================================
 MAPPINGS                                                   *litee-bookmarks-mappings*
 
@@ -139,14 +139,14 @@ for these windows.
 
 The following key maps are defined and can be reviewed anytime by pressing "?" in
 a litee-bookmarks.nvim window.
-
+>
     vim.api.nvim_buf_set_keymap(buf, "n", "<CR>", ":LTJumpBookmarks<CR>", opts)
     vim.api.nvim_buf_set_keymap(buf, "n", "s",  ":LTJumpBookmarksSplit<CR>", opts)
     vim.api.nvim_buf_set_keymap(buf, "n", "v",  ":LTJumpBookmarksVSplit<CR>", opts)
     vim.api.nvim_buf_set_keymap(buf, "n", "t",  ":LTJumpBookmarksTab<CR>", opts)
     vim.api.nvim_buf_set_keymap(buf, "n", "H",  ":LTHideBookmarks<CR>", opts)
     vim.api.nvim_buf_set_keymap(buf, "n", "X",  ":LTCloseBookmarks<CR>", opts)
-
+<
 ====================================================================================
 CONFIG                                                       *litee-bookmarks-config*
 
@@ -157,7 +157,7 @@ Ensure the `litee.lib` can be correctly imported for `litee-bookmarks.nvim` to
 work correctly.
 
 The config table is described below:
-
+>
     M.config = {
         -- where litee-bookmarks will store notebook files containing
         -- bookmarks.
@@ -184,7 +184,7 @@ The config table is described below:
         -- Valid options "eol", "right-aligned"
         virtual_text_pos = "eol"
     }
-
+<
 Any overrides to this table can be supplied in the setup function:
     `require('litee.bookmarks').setup({no_hls = true})`
 
@@ -193,7 +193,7 @@ other values their default.
 
 To customize the panel orientation, notifications, etc... you should
 configure `litee.lib` to your liking. For example:
-
+>
     require('litee.lib').setup({
         tree = {
             icon_set = "codicons"
@@ -203,13 +203,26 @@ configure `litee.lib` to your liking. For example:
             panel_size  = 30
         }
     })
-
-See (:h litee-config) for full details on configuring the litee.nvim library.
+>
+See (:h litee-usage) for full details on configuring the litee.nvim library.
 
 For an example configuration with suggested keymaps refer to my dotfiles:
 https://github.com/ldelossa/dotfiles/blob/master/nvim/lua/configs/litee.lua
+
+The custom icon_sets in separate plugins are supported, meaning this will
+override `icon_set` and `icon_set_custom` in `litee.lib`:
+>
+    require('litee.bookmarks').setup{
+      icon_set_custom = {Bookmark = "bmark"}, -- Provide icons you want.
+      -- You don't need the following line if you want a default icon_set
+      -- to be merged.
+      icon_set = "codicons",
+    }
+<
 
 ====================================================================================
 Highlights                                               *litee-bookmarks-highlights*
 
 See (:h litee-lib-highlights) for more details.
+
+vim:ft=help

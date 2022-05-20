@@ -1,5 +1,3 @@
-local config    = require('litee.bookmarks.config').config
-local lib_icons = require('litee.lib.icons')
 local lib_path  = require('litee.lib.util.path')
 
 local M = {}
@@ -8,12 +6,7 @@ local M = {}
 -- values for marshalling a bookmarks node into a buffer
 -- line.
 function M.marshal_func(node)
-    local icon_set = nil
-    if config.icon_set ~= nil then
-        icon_set = lib_icons[config.icon_set]
-    else
-        icon_set = lib_icons["default"]
-    end
+    local icon_set = require('litee.bookmarks').icon_set
     local name, detail, icon = "", "", ""
 
     name = node.name

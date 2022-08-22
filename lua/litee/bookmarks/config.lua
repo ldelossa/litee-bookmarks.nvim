@@ -19,7 +19,7 @@ M.config = {
       close = "X",
       close_panel_pop_out = "<Esc>",
       help = "?",
-      hide = "H",
+      hide = "<C-[>",
       delete = "D",
     },
     icon_set = "default",

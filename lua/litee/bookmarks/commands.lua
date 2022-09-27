@@ -25,7 +25,7 @@ function M.setup()
     vim.cmd("command! LTCloseNotebook           lua require('litee.bookmarks').close_notebook()")
     -- Hides the notebook from the `litee.nvim` panel but leaves state in Neovim.
     -- Will appear againt after a panel toggle.
-    vim.cmd("command! LTHideBookmarks           lua require('litee.bookmarks').hide_bookmarks()")
+    vim.cmd("command! LTHideNotebook           lua require('litee.bookmarks').hide_notebook()")
     -- Move to next bookmark in the notebook window
     vim.cmd("command! LTNextBookmarks           lua require('litee.bookmarks').navigation('n')")
     -- Move to previous bookmark in the notebook window
